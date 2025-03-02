@@ -1,5 +1,14 @@
+using Catalog.Api.Dtos;
+using Catalog.Api.Exceptions;
+using Catalog.Api.features.Product.CreateProduct;
+using Catalog.Api.features.Product.DeleteProduct;
+using Catalog.Api.features.Product.GetProductByCategory;
+using Catalog.Api.features.Product.GetProductById;
+using Catalog.Api.features.Product.GetProducts;
+using Catalog.Api.features.Product.UpdateProduct;
 using Catalog.Api.Models;
 using Catalog.Api.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,36 +16,40 @@ namespace Catalog.Api.Controllers
 {
 
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/products")]
     public class CatalogController : ControllerBase
     {
         private readonly ICatalogRepository _catalogRepository;
+        private readonly IMediator _mediator;
 
 
-        public CatalogController(ICatalogRepository catalogRepository)
+        public CatalogController(ICatalogRepository catalogRepository, IMediator mediator)
         {
             _catalogRepository = catalogRepository;
+            _mediator = mediator;
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts(int? pageNumber = 1, int? pageSize = 10)
         {
 
-            var products = await _catalogRepository.GetProducts();
+            var getProductQuery = new GetProductsQuery(pageNumber, pageSize);
+            var products = await _mediator.Send(getProductQuery);
             return Ok(products);
 
         }
 
         [HttpGet("{id}", Name = "GetProductById")]
-        public async Task<ActionResult<Product>> GetProductById(string id)
+        public async Task<ActionResult<ProductDto>> GetProductById(string id)
         {
-            var product = _catalogRepository.GetProduct(id);
-            if (product == null)
+            var getProductByIdQuery = new GetProductByIdQuery(id);
+            var result =  await _mediator.Send(getProductByIdQuery);
+            if (result.product == null)
             {
-                return NotFound(product);
+                 throw new ProductNotFoundException(id);
             }
-            return Ok(product);
+            return Ok(result);
         }
 
         [HttpGet("[action]/{name}", Name = "GetProductByName")]
@@ -45,33 +58,36 @@ namespace Catalog.Api.Controllers
             var product = await _catalogRepository.GetProductByName(name);
             if (product == null)
             {
-                return NotFound(product);
+               throw new ProductNotFoundException(name);
             }
-            return product;
+            return Ok(product);
         }
 
         [HttpGet("[action]/{category}", Name = "GetProductByCategory")]
-        public async Task<ActionResult<Product>> GetProductByCategory(string category)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductByCategory(string category)
         {
-            var product = await _catalogRepository.GetProductByCategory(category);
-            if (product == null)
+            var result = await _mediator.Send(new GetProductsByCategoryQuery(category));
+            if (result.products == null)
             {
-                return NotFound(product);
+                return NotFound($"Products does not exist with category {category}");
             }
-            return product;
+            return Ok(result);
+
         }
 
         [HttpPost(Name = "CreateProduct")]
-        public async Task<IActionResult> CreateProduct([FromBody] Product product){
-            await _catalogRepository.CreateProduct(product);
-            return CreatedAtRoute(nameof(GetProductById), new {id = product.Id}, product);
+        public async Task<IActionResult> CreateProduct([FromBody] ProductCreateDto productCreateDto){
+            var createProductCommand = new CreateProductCommand(productCreateDto);
+            var result =  await _mediator.Send(createProductCommand);
+            return CreatedAtRoute(nameof(GetProductById), new {id = result.Id},  productCreateDto);
 
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateProduct([FromBody] Product product){
-            if( await _catalogRepository.UpdateProduct(product)){
-                return Ok(product);
+        public async Task<IActionResult> UpdateProduct([FromBody] ProductDto product){
+            var result = await _mediator.Send(new UpdateProductCommand(product));
+            if( result.isSuccess){
+                return Ok(result);
             }
             else return BadRequest();
 
@@ -79,8 +95,9 @@ namespace Catalog.Api.Controllers
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(string id){
-            if( await _catalogRepository.DeleteProduct(id)){
-                return Ok();
+            var isSuccess = await _mediator.Send(new DeleteProductCommand(id));
+            if(isSuccess){
+                return Ok(isSuccess);
             }
             else return BadRequest();
         }

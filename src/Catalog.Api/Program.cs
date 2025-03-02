@@ -1,5 +1,13 @@
 using Catalog.Api.Data;
 using Catalog.Api.Repositories;
+using Common.Behaviors;
+using Common.Exceptions.Handler;
+using FluentValidation;
+using HealthChecks.MongoDb;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +20,23 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<CatalogDbSettings>(builder.Configuration.GetSection("Catalogdb"));
 builder.Services.AddScoped<ICatalogRepository,CatalogRepository>();
 builder.Services.AddSingleton<CatalogdbContext>();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddMediatR(config => 
+{
+    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    config.AddOpenBehavior(typeof(CommandValidationBehavior<,>));
+    config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+});
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+
+builder.Services.AddHealthChecks()
+        .AddMongoDb(mongodbConnectionString: builder.Configuration.GetSection("Catalogdb:ConnectionString").Value,
+        name: "mongo", 
+        failureStatus: HealthStatus.Unhealthy); //adding MongoDb Health Checks
+
+
 
 var app = builder.Build();
 
@@ -26,6 +51,12 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseHealthChecks("/health", new HealthCheckOptions {
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
 app.MapControllers();
+
+app.UseExceptionHandler(options => { });
 
 app.Run();

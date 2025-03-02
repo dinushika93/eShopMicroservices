@@ -38,6 +38,22 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "Compile Proto Files",
+            "type": "shell",
+            "command": "protoc",
+            "args": [
+                "--proto_path=${workspaceFolder}/Discount.Api/Protos",
+                "--csharp_out=${workspaceFolder}/Discount.Api/obj/Debug/net8.0/Protos",
+                "${workspaceFolder}/Discount.Api/Protos/*.proto"   
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Compiles .proto files to various language-specific outputs using protoc."
+        },
+        {
             "type": "docker-build",
             "label": "docker-build: debug",
             "dependsOn": [
@@ -46,12 +62,12 @@
             "dockerBuild": {
                 "tag": "src:dev",
                 "target": "base",
-                "dockerfile": "${workspaceFolder}/Catalog.Api/Dockerfile",
+                "dockerfile": "${workspaceFolder}/Basket.Api/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/Catalog.Api/Catalog.Api.csproj"
+                "appProject": "${workspaceFolder}/Basket.Api/Basket.Api.csproj"
             }
         },
         {
@@ -62,7 +78,7 @@
             ],
             "dockerBuild": {
                 "tag": "src:latest",
-                "dockerfile": "${workspaceFolder}/Catalog.Api/Dockerfile",
+                "dockerfile": "${workspaceFolder}/Basket.Api/Dockerfile",
                 "context": "${workspaceFolder}",
                 "platform": {
                     "os": "linux",
@@ -71,7 +87,7 @@
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/Catalog.Api/Catalog.Api.csproj"
+                "appProject": "${workspaceFolder}/Basket.Api/Basket.Api.csproj"
             }
         },
         {
@@ -82,7 +98,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/Catalog.Api/Catalog.Api.csproj",
+                "appProject": "${workspaceFolder}/Basket.Api/Basket.Api.csproj",
                 "enableDebugging": true
             }
         },
@@ -94,7 +110,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/Catalog.Api/Catalog.Api.csproj"
+                "appProject": "${workspaceFolder}/Basket.Api/Basket.Api.csproj"
             }
         }
     ]

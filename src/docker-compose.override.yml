@@ -1,0 +1,79 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+
+version: '3.4'
+
+services:
+  catalogdb:
+    container_name: catalogdb
+    ports:
+      - 27017:27017
+    volumes:
+     - mongo_data:/data/db 
+
+  basketdb:
+    container_name: basketdb
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=BasketDb 
+    restart: always
+    volumes:
+      - postrgresdb_basket:/var/lib/postgresql/data
+  
+  distributedcache:
+    container_name: distributedcache
+    restart: always
+    ports:
+      - 6379:6379
+
+  catalogapi:
+    container_name: catalogapi
+    image: catalogapi
+    build:
+      context: .
+      dockerfile: Catalog.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - "Catalogdb:ConnectionString=mongodb://catalogdb:27017"
+    depends_on:
+      - catalogdb
+    ports:
+      - "6000:8080"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  basketapi:
+    container_name: basketapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Server=basketdb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres;Include Error Detail=true
+      - ConnectionStrings__Redis=distributedcache:6379
+      - GrpcClientSettings__Endpoint=http://discountapi:8080
+    depends_on:
+      - basketdb
+      - distributedcache
+      - discountapi
+    ports:
+      - "6001:8080"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  discountapi:
+    container_name: discountapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080  # Ensure the app binds to port 8080 for HTTP (not HTTPS)
+      - ConnectionStrings__Database=Data Source=/app/discountdb/discount.db
+    ports:
+      - "6002:8080"  # Map host port 6002 to container port 8080
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ./data:/app/discountdb
+  
