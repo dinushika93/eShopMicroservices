@@ -22,6 +22,15 @@ services:
     volumes:
       - postrgresdb_basket:/var/lib/postgresql/data
   
+  orderDB:
+    container_name: orderDB
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SwN12345678
+    restart: always
+
   distributedcache:
     container_name: distributedcache
     restart: always

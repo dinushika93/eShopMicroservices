@@ -1,30 +1,65 @@
-namespace Ordering.Domain.Models;
+  using Ordering.Domain.Enums;
+  using Ordering.Domain.Events;
+  using Ordering.Domain.Interfaces;
 
-public class Order
-{
-  public Guid Id { get; set; }
-  private readonly List<OrderItem> _items = new();
-  public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
-  public Customer Customer { get; private set; } = null!;
-  public Address ShippingAddress { get;  private set;} = null!;
-  public Payment Payment { get; private set; } = null!;
+  namespace Ordering.Domain.Models;
 
-
-  public Order(Guid id, Customer customer, Address shippingAddress, Payment payment)
+  public class Order : Entity<Order>
   {
-    Id = id;
-    Customer = customer;
-    ShippingAddress = shippingAddress;
-    Payment = payment;
+    public OrderId Id { get; private set; } =default!;
+    private readonly List<OrderItem> _orderItems = new();
+    public IReadOnlyList<OrderItem> OrderItems => _orderItems.AsReadOnly();
+
+    public CustomerId CustomerId { get; private set; } = default!;
+    public Address ShippingAddress { get; private set; } = default!;
+    public Address BillingAddress { get; private set; } = default!;
+    public Payment Payment { get; private set; } = default!;
+    public OrderStatus Status { get; private set; } = OrderStatus.Pending;
+    public decimal OrderTotal { get => OrderItems.Sum(x => x.Price * x.Quantity); private set { } }
+
+
+    public static Order Create(OrderId id, CustomerId customerId, Address shippingAddress, Address billingAddress, Payment payment)
+    {
+      var order = new Order
+      {
+        Id = id,
+        CustomerId = customerId,
+        ShippingAddress = shippingAddress,
+        BillingAddress = billingAddress,
+        Payment = payment,
+        Status = OrderStatus.Pending
+      };
+
+      order.AddDomainEvents(new OrderCreatedEvent(order));
+      return order;
+    }
+
+    public void Update(Address shippingAddress, Address billingAddress, Payment payment, OrderStatus status)
+    {
+      ShippingAddress = shippingAddress;
+      BillingAddress = billingAddress;
+      Payment = payment;
+      Status = status;
+
+      AddDomainEvents(new OrderUpdatedEvent(this));
+    }
+
+    public void AddItem(ProductId  productId, int quantity, decimal price)
+    {
+      ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+      ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
+
+        var orderItem = new OrderItem(Id, productId, quantity, price);
+        _orderItems.Add(orderItem);
+    }
+
+    public void RemoveItem(ProductId productId)
+    {
+      var item = _orderItems.FirstOrDefault(i => i.ProductId == productId);
+      if (item != null)
+      {
+        _orderItems.Remove(item);
+      }
+    }
+
   }
-
-  public void AddItem(Guid productId, int quantity, decimal price)
-  {
-    var item = new OrderItem(productId, quantity, price);
-    _items.Add(item);
-  }
-
-
-
-
-} 

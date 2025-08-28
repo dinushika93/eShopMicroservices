@@ -11,8 +11,6 @@ namespace Catalog.Api.features.Product.DeleteProduct;
 
 public record DeleteProductCommand(string id) : ICommand<bool>;
 
-
-
 internal class DeleteProductHandler(ICatalogRepository repo, IMapper mapper, ILogger<GetProductByIdHandler> logger) : ICommandHandler<DeleteProductCommand, bool>
 {
     public async Task<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
