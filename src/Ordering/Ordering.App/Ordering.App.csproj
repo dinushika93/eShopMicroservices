@@ -15,5 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Ordering.Domain\Ordering.Domain.csproj" />
     <ProjectReference Include="..\..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Messaging\Messaging.csproj" />
   </ItemGroup>
 </Project>

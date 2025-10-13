@@ -10,7 +10,7 @@ public record SaveBasketResult(string userName);
 
 public class SaveBasketHandler(
     IBasketRepository repo, 
-    DiscountService.DiscountServiceClient discountServiceClient, 
+    //DiscountService.DiscountServiceClient discountServiceClient, 
     ILoggerFactory loggerFactory) 
     : ICommandHandler<SaveBasketCommand, SaveBasketResult>
 {
@@ -19,18 +19,18 @@ public class SaveBasketHandler(
     public async Task<SaveBasketResult> Handle(SaveBasketCommand request, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Im here inside Handle");
-        CalculateDiscount(discountServiceClient, request.cart);
+        //CalculateDiscount(discountServiceClient, request.cart);
         var cart = await repo.SaveBasket(request.cart, cancellationToken);
         return new SaveBasketResult(cart.UserName);
     }
 
-    private void CalculateDiscount(DiscountService.DiscountServiceClient discountServiceClient, Cart cart)
-    {
-        _logger.LogInformation("Im here at CalculateDiscount");
-        foreach (var item in cart.Items)
-        {
-            var discount = discountServiceClient.GetDiscount(new GetDiscountRequest { ProductName = item.ProductName });
-            item.Price -= discount.Amount;
-        }
-    }
+    // private void CalculateDiscount(DiscountService.DiscountServiceClient discountServiceClient, Cart cart)
+    // {
+    //     _logger.LogInformation("Im here at CalculateDiscount");
+    //     foreach (var item in cart.Items)
+    //     {
+    //         var discount = discountServiceClient.GetDiscount(new GetDiscountRequest { ProductName = item.ProductName });
+    //         item.Price -= discount.Amount;
+    //     }
+    // }
 }

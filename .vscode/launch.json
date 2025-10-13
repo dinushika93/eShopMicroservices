@@ -2,6 +2,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "OrderingAPI111",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Ordering/Ordering.Api/bin/Debug/net8.0/Ordering.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Ordering/Ordering.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+                
+            }
+        },
+        {
             "name": "CatalogAPI",
             "type": "coreclr",
             "request": "launch",
@@ -75,5 +90,11 @@
                 "appProject": "${workspaceFolder}/src/Basket.Api/Basket.Api.csproj"
             }
         }
-    ]
+    ],
+   "compounds": [
+    {
+      "name": "Basket+Discount+Ordering",
+      "configurations": ["BasketAPI", "OrderingAPI111"]
+    }
+]
 }

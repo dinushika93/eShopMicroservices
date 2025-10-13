@@ -19,27 +19,8 @@ public class GetOrderByCustomerHandler(IOrderRepository orderRepository) : IQuer
     public async Task<GetOrdersByCustomerResponse> Handle(GetOrdersByCustomerRequest request, CancellationToken cancellationToken)
     {
         var customerId = CustomerId.Of(request.customerId);
-        var orders = await orderRepository.GetOrdersByCustomer(customerId);
+        var orders = await orderRepository.GetOrdersByCustomer(customerId, cancellationToken);
 
-        return new GetOrdersByCustomerResponse(orders.MapOrders());
+        return new GetOrdersByCustomerResponse(orders.ToOrderDtoList());
     }
-
-    // private IEnumerable<OrderDto> MapOrder(IEnumerable<Order> orders)
-    // {
-    //     return orders.Select(order => new OrderDto
-    //     (
-    //         order.Id.Value,
-    //         order.CustomerId.Value,
-    //         new AddressDto(order.BillingAddress.FirstName, order.BillingAddress.LastName, order.BillingAddress.EmailAddress,
-    //             order.BillingAddress.AddressLine, order.BillingAddress.Country,
-    //             order.BillingAddress.State, order.BillingAddress.ZipCode),
-    //         new AddressDto(order.ShippingAddress.FirstName, order.ShippingAddress.LastName, order.ShippingAddress.EmailAddress,
-    //             order.ShippingAddress.AddressLine, order.ShippingAddress.Country,
-    //             order.ShippingAddress.State, order.ShippingAddress.ZipCode),
-    //         new PaymentDto(order.Payment.CardName, order.Payment.CardNumber, order.Payment.Expiration,
-    //              order.Payment.CVV, order.Payment.PaymentMethod),
-    //              order.Items.Select(item => new OrderItemDto(item.Id.Value, item.OrderId.Value, item.ProductId.Value, item.Quantity, item.Price)).ToList(),
-    //         order.Status
-    //     ));
-    // }
 }

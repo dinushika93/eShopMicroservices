@@ -2,6 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using Common.Behaviors;
+using MassTransit;
+using Messaging.Extensions;
+using Microsoft.FeatureManagement;
 
 namespace Ordering.App.Extensions;
 
@@ -15,6 +18,8 @@ public static class ApplicationServices
          config.AddOpenBehavior(typeof(CommandValidationBehavior<,>));
          config.AddOpenBehavior(typeof(LoggingBehavior<,>));
       });
+      serviceCollection.AddFeatureManagement();
+      serviceCollection.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
 
       return serviceCollection;
    }

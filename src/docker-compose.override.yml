@@ -1,14 +1,12 @@
 # Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
 
-version: '3.4'
-
 services:
   catalogdb:
     container_name: catalogdb
     ports:
       - 27017:27017
     volumes:
-     - mongo_data:/data/db 
+     - mongo_data:/var/lib/mongo/data
 
   basketdb:
     container_name: basketdb
@@ -20,10 +18,10 @@ services:
       - POSTGRES_DB=BasketDb 
     restart: always
     volumes:
-      - postrgresdb_basket:/var/lib/postgresql/data
+      - postgresdb_basket:/var/lib/postgresql/data/
   
-  orderDB:
-    container_name: orderDB
+  orderdb:
+    container_name: orderdb
     ports:
       - 1433:1433
     environment:
@@ -36,6 +34,17 @@ services:
     restart: always
     ports:
       - 6379:6379
+
+  messagebroker:
+    container_name: messagebroker 
+    hostname: eshop-rabbitmq
+    environment:
+       RABBITMQ_DEFAULT_USER: guest
+       RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: always
 
   catalogapi:
     container_name: catalogapi
@@ -62,27 +71,52 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ConnectionStrings__Database=Server=basketdb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres;Include Error Detail=true
       - ConnectionStrings__Redis=distributedcache:6379
-      - GrpcClientSettings__Endpoint=http://discountapi:8080
+      #- GrpcClientSettings__Endpoint=http://discountapi:8080
+      - MessageBroker__Host=amqp://messagebroker:5672
+      - MessageBroker__UserName=guest
+      - MessageBroker__Password=guest
     depends_on:
       - basketdb
       - distributedcache
-      - discountapi
+      #- discountapi
+      - messagebroker
     ports:
       - "6001:8080"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
 
-  discountapi:
-    container_name: discountapi
+  # discountapi:
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_HTTP_PORTS=8080
+  #     - ASPNETCORE_HTTPS_PORTS=8081
+  #     - ConnectionStrings__Database=Data Source=discountdb
+  #   ports:
+  #     - "6002:8080"
+  #     - "6062:8081"
+  #   volumes:
+  #     - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+  #     - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  orderingapi:
+    container_name: orderingapi
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080  # Ensure the app binds to port 8080 for HTTP (not HTTPS)
-      - ConnectionStrings__Database=Data Source=/app/discountdb/discount.db
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Database=Server=orderdb;Database=orderdb;User Id=sa;Password=SwN12345678;Encrypt=True;TrustServerCertificate=True
+      - MessageBroker__Host=amqp://messagebroker:5672
+      - MessageBroker__UserName=guest
+      - MessageBroker__Password=guest
+      - FeatureManagement__OrderFullfillment=false
+    depends_on:
+      - orderdb   
+      - messagebroker
     ports:
-      - "6002:8080"  # Map host port 6002 to container port 8080
+      - "6003:8080"
+      - "6063:8081"
+  
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
-      - ./data:/app/discountdb
   

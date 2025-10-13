@@ -6,26 +6,15 @@ namespace Ordering.App.Extensions;
 
 public static class OrderExtension
 {
-    public static IEnumerable<OrderDto> MapOrders(this IEnumerable<Order> orders)
+    public static IEnumerable<OrderDto> ToOrderDtoList(this IEnumerable<Order> orders)
     {
-        return orders.Select(order => new OrderDto
-        (
-            order.Id.Value,
-            order.CustomerId.Value,
-            new AddressDto(order.BillingAddress.FirstName, order.BillingAddress.LastName, order.BillingAddress.EmailAddress,
-                order.BillingAddress.AddressLine, order.BillingAddress.Country,
-                order.BillingAddress.State, order.BillingAddress.ZipCode),
-            new AddressDto(order.ShippingAddress.FirstName, order.ShippingAddress.LastName, order.ShippingAddress.EmailAddress,
-                order.ShippingAddress.AddressLine, order.ShippingAddress.Country,
-                order.ShippingAddress.State, order.ShippingAddress.ZipCode),
-            new PaymentDto1(order.Payment.CardName, order.Payment.CardNumber, order.Payment.Expiration,
-                 order.Payment.CVV, order.Payment.PaymentMethod),
-                 order.OrderItems.Select(item => new OrderItemDto(item.Id.Value, item.OrderId.Value, item.ProductId.Value, item.Quantity, item.Price)).ToList(),
-            order.Status
-        ));
+        return orders.Select(order => order.MapOrder());
     }
     
-    public static OrderDto MapOrder(this Order order)
+
+    public static OrderDto ToOrderDto(this Order order) => order.MapOrder();
+
+    private static OrderDto MapOrder(this Order order)
     {
         var billingAddress = new AddressDto(order.BillingAddress.FirstName, order.BillingAddress.LastName, order.BillingAddress.EmailAddress,
         order.BillingAddress.AddressLine, order.BillingAddress.Country,
@@ -35,7 +24,7 @@ public static class OrderExtension
         order.ShippingAddress.AddressLine, order.ShippingAddress.Country,
         order.ShippingAddress.State, order.ShippingAddress.ZipCode);
 
-        var payment = new PaymentDto1(order.Payment.CardName, order.Payment.CardNumber, order.Payment.Expiration,
+        var payment = new PaymentDto(order.Payment.CardName, order.Payment.CardNumber, order.Payment.Expiration,
         order.Payment.CVV, order.Payment.PaymentMethod);
 
         return new OrderDto
@@ -45,7 +34,7 @@ public static class OrderExtension
             billingAddress,
             shippingAddress,
              payment,
-            order.OrderItems.Select(item => new OrderItemDto(item.Id.Value, item.OrderId.Value, item.ProductId.Value, item.Quantity, item.Price)).ToList(),
+            order.OrderItems.Select(item => new OrderItemDto(item.OrderId.Value, item.ProductId.Value, item.Quantity, item.Price)).ToList(),
             order.Status
         );
     }

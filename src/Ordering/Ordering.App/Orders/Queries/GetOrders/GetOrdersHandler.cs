@@ -27,7 +27,7 @@ public class GetOrdersHandler(IOrderRepository orderRepository) : IQueryHandler<
             pageIndex: index,
             pageSize: pageSize,
             count: count,
-            data:  orders.MapOrders()
+            data:  orders.ToOrderDtoList()
         ));
      
     }

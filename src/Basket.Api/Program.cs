@@ -6,6 +6,7 @@ using Discount.Api;
 using HealthChecks.UI.Client;
 using Marten;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Messaging.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +37,10 @@ builder.Services.AddMarten(opts =>
     opts.Connection(builder.Configuration.GetConnectionString("Database")!);
     opts.Schema.For<Cart>().Identity(x => x.UserName);
 }).UseLightweightSessions();
+
+//RabbitMQ message broker
+builder.Services.AddMessageBroker(builder.Configuration);
+
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
 builder.Services.AddHealthChecks()
@@ -43,12 +48,12 @@ builder.Services.AddHealthChecks()
     .AddRedis(builder.Configuration.GetConnectionString("Redis"));
 
 //gRPC services
+// builder.Services.AddGrpcClient<DiscountService.DiscountServiceClient>(options =>
+//  {
+//     // Set the gRPC server URL
+//     options.Address = new Uri(builder.Configuration["GrpcClientSettings:Endpoint"]);
+// });
 
-builder.Services.AddGrpcClient<DiscountService.DiscountServiceClient>(options =>
- {
-    // Set the gRPC server URL
-    options.Address = new Uri(builder.Configuration["GrpcClientSettings:Endpoint"]);
-});
 builder.Logging.AddConsole();  // Ensures logs go to stdout
 builder.Logging.AddDebug();    // Enables Debug logs
 var app = builder.Build();

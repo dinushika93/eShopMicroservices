@@ -8,8 +8,8 @@ public interface IOrderRepository
     Task<Order> GetOrderById(OrderId orderId);
     Task<bool> UpdateOrder(Order order);
     Task<bool> DeleteOrder(Order order);
-    Task<Order> GetOrderWithItems(OrderId orderId);
-    Task<IEnumerable<Order>> GetOrdersByCustomer(CustomerId customerId);
+    Task<Order> GetOrder(OrderId orderId);
+    Task<IEnumerable<Order>> GetOrdersByCustomer(CustomerId customerId , CancellationToken cancellation);
     Task<IEnumerable<Order>> GetOrders(int index, int pageSize, CancellationToken cancellation);
     Task<long> CountOrders();
 

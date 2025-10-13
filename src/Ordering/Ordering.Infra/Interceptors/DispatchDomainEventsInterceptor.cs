@@ -27,7 +27,7 @@ public class DispatchDomainEventsInterceptor(IMediator mediator) : SaveChangesIn
         
         foreach (var e in domainEvents)
         {
-            mediator.Publish(e);
+            await mediator.Publish(e);
         }
 
     }

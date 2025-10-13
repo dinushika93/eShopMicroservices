@@ -18,8 +18,8 @@ public class GetOrderByIdHandler(IOrderRepository orderRepository) : IQueryHandl
     public async Task<GetOrderByIdResponse> Handle(GetOrderByIdRequest request, CancellationToken cancellationToken)
     {
         var orderId = OrderId.Of(request.id);
-        var order = await orderRepository.GetOrderWithItems(orderId);
+        var order = await orderRepository.GetOrder(orderId);
     
-        return new GetOrderByIdResponse(order.MapOrder());
+        return new GetOrderByIdResponse(order.ToOrderDto());
     }
 }

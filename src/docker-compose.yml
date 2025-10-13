@@ -6,12 +6,15 @@ services:
   basketdb:
     image: postgres
     
-  orderDB:
+  orderdb:
     image: mcr.microsoft.com/mssql/server
 
   distributedcache:
     image: redis
-    
+
+  messagebroker:
+    image: rabbitmq:3-management
+
   catalogapi:
     container_name: catalogapi
   
@@ -21,12 +24,18 @@ services:
       context: .
       dockerfile: Basket.Api/Dockerfile
   
-  discountapi:
-    image: ${DOCKER_REGISTRY-}discountapi
+  # discountapi:
+  #   image: ${DOCKER_REGISTRY-}discountapi
+  #   build:
+  #     context: .
+  #     dockerfile: Discount.Api/Dockerfile
+
+  orderingapi:
+    image: ${DOCKER_REGISTRY-}orderingapi
     build:
       context: .
-      dockerfile: Discount.Api/Dockerfile
+      dockerfile: Ordering/Ordering.Api/Dockerfile
 
 volumes:
   mongo_data:
-  postrgresdb_basket:  
+  postgresdb_basket:  
