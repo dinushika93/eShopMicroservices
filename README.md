@@ -5,3 +5,5 @@ This repository is a  collection of microserervices that simulates the component
 The architecture presents a simplified microservice-oriented design, featuring multiple autonomous microservices—each owning its own data/database. The solution is a reimplemnation of a well-known domain, so the main goal is to explores different implementation patterns across the services(Vertcalslice architecture vs DDD/Clean architecture)
 
 Components
+
+<img width="581" height="378" alt="image" src="https://github.com/user-attachments/assets/eafa1590-d949-4c49-bcf2-a3a72089bf87" />
