@@ -1,8 +1,10 @@
 Overview
 
-This repository is a  collection of microserervices that simulates the components of a basic e-shopping web Application.
+This repository contains a collection of microservices that simulate the core components of a basic e-shopping web application.
 
-The architecture presents a simplified microservice-oriented design, featuring multiple autonomous microservices—each owning its own data/database. The solution is a reimplemnation of a well-known domain, so the main goal is to explores different implementation patterns across the services(Vertcalslice architecture vs DDD/Clean architecture)
+The architecture demonstrates a simplified microservice-oriented design, where each service operates autonomously and owns its own dedicated database.Each service and its corresponding database are hosted in independent Docker containers, to enable isolated development and deployment.
+
+The primary goal of this solution is to explore different implementation patterns across services — such as Vertical Slice Architecture and Domain-Driven Design (DDD) and Clean Architecture — within a familiar e-commerce domain. 
 
 Components
 
